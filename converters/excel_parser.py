@@ -1,13 +1,11 @@
 """
 Excel attendance report parser.
-Detects headers automatically and normalises column names.
 """
 
 import openpyxl
 from typing import List, Dict, Optional, Tuple
 
 
-# Canonical column names mapped to Michpal report codes and field type (qty/price)
 DEFAULT_COLUMN_MAPPING: Dict[str, Tuple[str, str]] = {
     'ימי עבודה בפועל':       ('124', 'qty'),
     'actual_work_days':      ('124', 'qty'),
@@ -35,7 +33,6 @@ DEFAULT_COLUMN_MAPPING: Dict[str, Tuple[str, str]] = {
     'remaining_paid_leave_days': ('111', 'qty'),
 }
 
-# Column names that identify the payroll-system employee number
 EMPLOYEE_NUM_ALIASES = {
     "מס' עובד במע' שכר",
     "מס' עובד בשכר",
@@ -46,7 +43,6 @@ EMPLOYEE_NUM_ALIASES = {
 
 
 def _find_header_row(ws) -> Optional[int]:
-    """Find the row that contains column headers (usually the first non-empty row)."""
     for row_idx, row in enumerate(ws.iter_rows(min_row=1, max_row=10, values_only=True), 1):
         non_empty = [c for c in row if c is not None]
         if len(non_empty) >= 3:
@@ -55,26 +51,6 @@ def _find_header_row(ws) -> Optional[int]:
 
 
 def parse_excel_file(filepath: str, column_mapping: Optional[Dict] = None) -> Dict:
-    """
-    Parse an Excel attendance report.
-
-    Returns:
-        {
-            'employees': [
-                {
-                    'employee_num': str,
-                    'id_num': str,
-                    'first_name': str,
-                    'last_name': str,
-                    'components': [{'report_code': str, 'quantity': float, 'price': float}]
-                },
-                ...
-            ],
-            'columns': [{'header': str, 'report_code': str, 'field': str}],
-            'year': int,
-            'month': int,
-        }
-    """
     wb = openpyxl.load_workbook(filepath, data_only=True)
     ws = wb.active
 
@@ -83,8 +59,7 @@ def parse_excel_file(filepath: str, column_mapping: Optional[Dict] = None) -> Di
 
     mapping = column_mapping or DEFAULT_COLUMN_MAPPING
 
-    # Map header positions to Michpal codes
-    col_map = {}  # col_index -> (report_code, field)
+    col_map = {}
     employee_col = None
     id_col = None
     first_name_col = None
@@ -111,8 +86,7 @@ def parse_excel_file(filepath: str, column_mapping: Optional[Dict] = None) -> Di
             col_map[col_idx] = mapping[h]
 
     if employee_col is None:
-        raise ValueError("לא נמצאה עמודת מספר עובד בקובץ האקסל. "
-                         "יש להוסיף עמודה בשם: 'מס' עובד במע' שכר'")
+        raise ValueError("לא נמצאה עמודת מספר עובד. יש להוסיף עמודה: 'מס' עובד במע' שכר'")
 
     employees = []
     for row in ws.iter_rows(min_row=header_row + 1, values_only=True):
@@ -169,7 +143,6 @@ def parse_excel_file(filepath: str, column_mapping: Optional[Dict] = None) -> Di
                 'components': components,
             })
 
-    # Build column info for UI display
     columns = []
     for col_idx, (report_code, field) in col_map.items():
         header = str(headers[col_idx]).strip() if col_idx < len(headers) else ''

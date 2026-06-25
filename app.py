@@ -29,12 +29,6 @@ def _tmp(suffix: str) -> str:
 
 
 def _parse_michpal_filename(filename: str):
-    """
-    Try to extract (company, month, year) from a QDIV filename.
-    Accepted patterns:
-      - QDIV0626.010  →  month=06, year=2026, company=010
-      - 010.QDIV0626  →  same
-    """
     name = filename.upper()
     m = re.search(r'QDIV(\d{2})(\d{2})\.(\d+)', name)
     if m:
@@ -46,8 +40,6 @@ def _parse_michpal_filename(filename: str):
         return company, mm, 2000 + yy
     return None, None, None
 
-
-# ── Routes ────────────────────────────────────────────────────────────────────
 
 @app.route('/')
 def index():
@@ -64,7 +56,6 @@ def michpal_to_excel():
         mpath = _tmp('.010')
         mf.save(mpath)
 
-        # Optional PDF for component names
         component_names = {}
         pdf = request.files.get('pdf_file')
         if pdf and pdf.filename:
@@ -114,14 +105,12 @@ def excel_to_michpal():
         year  = int(year_str)
         month = int(month_str)
 
-        # Override with custom column mapping if provided
         col_mapping_json = request.form.get('col_mapping', '')
         custom_mapping = None
         if col_mapping_json:
             import json
             try:
                 raw = json.loads(col_mapping_json)
-                # raw is {header: {report_code, field}}
                 custom_mapping = {h: (v['report_code'], v['field']) for h, v in raw.items()}
             except Exception:
                 pass
@@ -131,14 +120,13 @@ def excel_to_michpal():
         if not employees:
             return jsonify(error='לא נמצאו עובדים עם נתוני שכר'), 400
 
-        # Flatten to list of dicts for writer
         rows = []
         for emp in employees:
             for comp in emp['components']:
                 rows.append({
                     'employee_num': emp['employee_num'],
                     'id_num': emp['id_num'],
-                    'bruto_neto': 'ב',
+                    'bruto_neto': ' ',
                     'has_customer': '0',
                     'customer_num': '   ',
                     'record_code': '1',
@@ -170,7 +158,6 @@ def excel_to_michpal():
 
 @app.route('/api/inspect-excel', methods=['POST'])
 def inspect_excel():
-    """Return column info from an Excel file so the UI can show a mapping editor."""
     try:
         if 'excel_file' not in request.files:
             return jsonify(error='חסר קובץ'), 400
@@ -183,7 +170,6 @@ def inspect_excel():
         wb = openpyxl.load_workbook(epath, data_only=True, read_only=True)
         ws = wb.active
 
-        # Find header row
         headers = []
         for row in ws.iter_rows(min_row=1, max_row=10, values_only=True):
             non_empty = [c for c in row if c is not None]
@@ -193,7 +179,6 @@ def inspect_excel():
 
         wb.close()
 
-        # Suggest mappings
         suggestions = []
         for h in headers:
             if not h:
@@ -213,7 +198,6 @@ def inspect_excel():
 
 @app.route('/api/inspect-michpal', methods=['POST'])
 def inspect_michpal():
-    """Return summary of a QDIV file."""
     try:
         if 'michpal_file' not in request.files:
             return jsonify(error='חסר קובץ'), 400

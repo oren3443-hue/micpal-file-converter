@@ -3,5 +3,3 @@ __pycache__/
 *.pyo
 .env
 uploads/
-*.xlsx.tmp
-*.010.tmp

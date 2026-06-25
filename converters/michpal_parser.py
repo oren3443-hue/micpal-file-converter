@@ -33,7 +33,7 @@ BUILTIN_CODE_NAMES = {
     '112': 'צבירת מחלה',
     '113': 'צבירת הבראה',
     '121': 'כמות בסיס',
-    '122': "שעות עבודה (משולמות)",
+    '122': 'שעות עבודה (משולמות)',
     '123': 'שעות היעדרות',
     '124': 'ימי עבודה בפועל',
     '125': 'שעות עבודה בפועל',
@@ -43,15 +43,6 @@ BUILTIN_CODE_NAMES = {
     '901': 'קוד הפסקה (1)',
     '902': 'איפוס רכיבי שכר',
     '910': 'קוד הפסקה (5)',
-}
-
-BRUTO_NETO_LABELS = {
-    'ב': 'ברוטו',
-    'נ': 'נטו',
-    'ק': 'נטו כולל',
-    'פ': 'פיצוי שווי',
-    'ג': 'גילום החזר הוצאה',
-    ' ': '',
 }
 
 
@@ -95,10 +86,6 @@ class MichpalRecord:
         return int(self.yymm[2:4])
 
     def get_component_number(self) -> int:
-        """
-        Salary component codes 100-252 are stored as report codes 400-552 (add 300).
-        All other report codes equal the component number.
-        """
         code = int(self.report_code)
         if 400 <= code <= 552:
             return code - 300
