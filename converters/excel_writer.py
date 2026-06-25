@@ -50,13 +50,39 @@ def _data_cell(ws, row, col, value, is_alt=False, number_format=None, bold=False
 
 
 def _component_code(report_code: str) -> str:
-    """Convert raw QDIV report code to display component number.
-    Salary components 100-252 are stored as 400-552 in the file (add 300).
+    """Human-readable component number for a raw QDIV report code.
+    Salary components 1-252 are stored as 301-552 in the file (+300).
+    Attendance/built-in codes (100-131, 900s) are stored as-is.
     """
     code = int(report_code)
-    if 400 <= code <= 552:
+    if 300 < code <= 552:
         return str(code - 300).zfill(3)
     return report_code
+
+
+def _name_for_code(report_code: str, component_names: Dict) -> str:
+    """
+    Resolve a display name for a raw QDIV report code.
+
+    Priority:
+    1. Attendance/built-in codes (BUILTIN_CODE_NAMES) — matched on raw code.
+    2. Salary components (QDIV 301-552 = user components 001-252) — looked up
+       by component number (code-300) in component_names.
+    3. Fallback: 'רכיב {component_number}'.
+
+    This avoids the collision where attendance code 124 and salary component 124
+    (stored as QDIV 424) would otherwise map to the same display key.
+    """
+    # Attendance / built-in: raw code is the canonical key
+    if report_code in BUILTIN_CODE_NAMES:
+        return BUILTIN_CODE_NAMES[report_code]
+    code = int(report_code)
+    # Salary component: subtract offset to get component number
+    if 300 < code <= 552:
+        comp_key = str(code - 300).zfill(3)
+        return component_names.get(comp_key, f'רכיב {comp_key}')
+    # Other codes: try direct lookup, then fallback
+    return component_names.get(report_code, f'קוד {report_code}')
 
 
 def write_excel_from_michpal(
@@ -71,31 +97,32 @@ def write_excel_from_michpal(
     if not records:
         raise ValueError("אין רשומות לכתיבה")
 
-    names: Dict[str, str] = {**BUILTIN_CODE_NAMES, **(component_names or {})}
+    comp_names = component_names or {}
 
-    # Group by employee
+    # Group by employee; use RAW report_code as column key to avoid collisions
+    # between attendance codes (e.g. 124) and salary components (e.g. 424 = comp 124).
     employees: Dict[str, Dict] = defaultdict(lambda: {
         'id_num': '',
-        'codes': {},  # component_code -> {'qty': float, 'price': float}
+        'codes': {},  # raw report_code -> {'qty': float, 'price': float}
         'company': '',
         'yymm': '',
     })
 
-    all_codes = sorted(set(_component_code(r.report_code) for r in records))
+    all_codes = sorted(set(r.report_code for r in records))
 
     for rec in records:
         if rec.record_code == '9':
             continue
         emp = rec.employee_num
-        comp_code = _component_code(rec.report_code)
+        code_key = rec.report_code
         employees[emp]['id_num'] = rec.id_num
         employees[emp]['company'] = rec.company
         employees[emp]['yymm'] = rec.yymm
-        if comp_code not in employees[emp]['codes']:
-            employees[emp]['codes'][comp_code] = {'qty': 0.0, 'price': 0.0}
-        employees[emp]['codes'][comp_code]['qty'] += rec.quantity
+        if code_key not in employees[emp]['codes']:
+            employees[emp]['codes'][code_key] = {'qty': 0.0, 'price': 0.0}
+        employees[emp]['codes'][code_key]['qty'] += rec.quantity
         if rec.price != 0:
-            employees[emp]['codes'][comp_code]['price'] = rec.price
+            employees[emp]['codes'][code_key]['price'] = rec.price
 
     # Determine which codes have non-zero prices
     codes_with_price: set = set()
@@ -104,10 +131,10 @@ def write_excel_from_michpal(
             if vals['price'] != 0:
                 codes_with_price.add(code)
 
-    # Build column definitions: (code, field, label)
+    # Build column definitions: (raw_code, field, label)
     col_defs = []
     for code in all_codes:
-        code_name = names.get(code, f'רכיב {code}')
+        code_name = _name_for_code(code, comp_names)
         col_defs.append((code, 'qty', f'{code_name}\n(כמות)'))
         if code in codes_with_price:
             col_defs.append((code, 'price', f'{code_name}\n(מחיר)'))
@@ -176,7 +203,7 @@ def write_excel_from_michpal(
         ('חודש', first.month),
         ('מספר עובדים', len(employees)),
         ('מספר רשומות', len(records)),
-        ('סמלי דיווח', ', '.join(all_codes)),
+        ('סמלי דיווח', ', '.join(_component_code(c) for c in all_codes)),
     ]
     for i, (k, v) in enumerate(meta, 1):
         ws2.cell(row=i, column=1, value=k).font = Font(bold=True, name='Arial')
