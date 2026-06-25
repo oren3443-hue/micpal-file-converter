@@ -6,57 +6,155 @@
   <title>ממיר קבצי מיכפל ↔ אקסל</title>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: 'Segoe UI', Arial, sans-serif; background: #f0f4f8; color: #1a2a3a; min-height: 100vh; direction: rtl; }
-    header { background: linear-gradient(135deg, #1F4E79, #2E75B6); color: #fff; padding: 20px 32px; display: flex; align-items: center; gap: 14px; box-shadow: 0 2px 8px rgba(0,0,0,.25); }
+
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background: #f0f4f8;
+      color: #1a2a3a;
+      min-height: 100vh;
+      direction: rtl;
+    }
+
+    header {
+      background: linear-gradient(135deg, #1F4E79, #2E75B6);
+      color: #fff;
+      padding: 20px 32px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      box-shadow: 0 2px 8px rgba(0,0,0,.25);
+    }
     header .logo { font-size: 2rem; }
     header h1 { font-size: 1.5rem; font-weight: 700; }
     header p  { font-size: .85rem; opacity: .85; margin-top: 3px; }
+
     main { max-width: 900px; margin: 32px auto; padding: 0 16px; }
+
+    /* Tabs */
     .tabs { display: flex; gap: 4px; margin-bottom: 0; }
-    .tab-btn { padding: 11px 28px; border: none; border-radius: 8px 8px 0 0; font-size: 1rem; font-weight: 600; cursor: pointer; background: #d1dde8; color: #3a5f7a; transition: background .2s, color .2s; }
+    .tab-btn {
+      padding: 11px 28px;
+      border: none; border-radius: 8px 8px 0 0;
+      font-size: 1rem; font-weight: 600; cursor: pointer;
+      background: #d1dde8; color: #3a5f7a;
+      transition: background .2s, color .2s;
+    }
     .tab-btn.active { background: #fff; color: #1F4E79; }
-    .tab-panel { display: none; background: #fff; border-radius: 0 8px 8px 8px; padding: 28px 32px; box-shadow: 0 2px 12px rgba(0,0,0,.08); }
+
+    .tab-panel {
+      display: none; background: #fff;
+      border-radius: 0 8px 8px 8px;
+      padding: 28px 32px;
+      box-shadow: 0 2px 12px rgba(0,0,0,.08);
+    }
     .tab-panel.active { display: block; }
+
     h2 { font-size: 1.15rem; color: #1F4E79; margin-bottom: 16px; border-bottom: 2px solid #e0eaf4; padding-bottom: 8px; }
-    .upload-zone { border: 2px dashed #7baed4; border-radius: 10px; padding: 28px; text-align: center; cursor: pointer; transition: border-color .2s, background .2s; background: #f6fafd; margin-bottom: 16px; position: relative; }
-    .upload-zone:hover, .upload-zone.dragover { border-color: #1F4E79; background: #e8f0f9; }
-    .upload-zone input[type=file] { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; }
+
+    /* Upload zone */
+    .upload-zone {
+      border: 2px dashed #7baed4;
+      border-radius: 10px;
+      padding: 28px;
+      text-align: center;
+      cursor: pointer;
+      transition: border-color .2s, background .2s;
+      background: #f6fafd;
+      margin-bottom: 16px;
+      position: relative;
+    }
+    .upload-zone:hover, .upload-zone.dragover {
+      border-color: #1F4E79; background: #e8f0f9;
+    }
+    .upload-zone input[type=file] {
+      position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%;
+    }
     .upload-zone .icon { font-size: 2.2rem; }
     .upload-zone .label { font-weight: 600; margin-top: 8px; color: #1F4E79; }
     .upload-zone .hint  { font-size: .8rem; color: #6b8caa; margin-top: 4px; }
     .upload-zone .filename { font-size: .9rem; color: #1a6a1a; margin-top: 8px; font-weight: 600; }
-    .info-box { background: #e8f4fd; border-right: 4px solid #2E75B6; border-radius: 6px; padding: 12px 16px; font-size: .88rem; color: #1a3a5a; margin-bottom: 16px; display: none; }
+
+    /* Info box */
+    .info-box {
+      background: #e8f4fd; border-right: 4px solid #2E75B6;
+      border-radius: 6px; padding: 12px 16px;
+      font-size: .88rem; color: #1a3a5a; margin-bottom: 16px;
+      display: none;
+    }
     .info-box.show { display: block; }
     .info-box strong { display: block; margin-bottom: 6px; font-size: .9rem; }
+
+    /* Form fields */
     .field-row { display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 16px; }
     .field-group { display: flex; flex-direction: column; gap: 5px; flex: 1; min-width: 140px; }
     .field-group label { font-size: .85rem; font-weight: 600; color: #2a4a6a; }
-    .field-group input, .field-group select { padding: 8px 10px; border: 1.5px solid #b0c8de; border-radius: 6px; font-size: .95rem; background: #f9fcff; transition: border-color .2s; }
-    .field-group input:focus, .field-group select:focus { outline: none; border-color: #1F4E79; }
+    .field-group input, .field-group select {
+      padding: 8px 10px; border: 1.5px solid #b0c8de; border-radius: 6px;
+      font-size: .95rem; background: #f9fcff;
+      transition: border-color .2s;
+    }
+    .field-group input:focus, .field-group select:focus {
+      outline: none; border-color: #1F4E79;
+    }
+
+    /* Mapping table */
     .mapping-section { margin-top: 16px; }
-    .mapping-section summary { cursor: pointer; font-weight: 600; color: #1F4E79; padding: 8px 0; font-size: .9rem; user-select: none; }
-    .mapping-table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: .85rem; }
-    .mapping-table th { background: #e0eaf4; padding: 7px 10px; text-align: right; font-weight: 600; border-bottom: 2px solid #c0d4e8; }
+    .mapping-section summary {
+      cursor: pointer; font-weight: 600; color: #1F4E79; padding: 8px 0;
+      font-size: .9rem; user-select: none;
+    }
+    .mapping-table {
+      width: 100%; border-collapse: collapse; margin-top: 10px;
+      font-size: .85rem;
+    }
+    .mapping-table th {
+      background: #e0eaf4; padding: 7px 10px; text-align: right;
+      font-weight: 600; border-bottom: 2px solid #c0d4e8;
+    }
     .mapping-table td { padding: 6px 10px; border-bottom: 1px solid #e8f0f8; }
     .mapping-table tr:hover td { background: #f4f8fc; }
-    .mapping-table input, .mapping-table select { padding: 4px 6px; border: 1px solid #b0c8de; border-radius: 4px; font-size: .82rem; width: 100%; }
-    .convert-btn { display: flex; align-items: center; gap: 10px; background: linear-gradient(135deg, #1F4E79, #2E75B6); color: #fff; border: none; border-radius: 8px; padding: 12px 32px; font-size: 1.05rem; font-weight: 700; cursor: pointer; margin-top: 20px; transition: opacity .2s, transform .1s; box-shadow: 0 2px 8px rgba(31,78,121,.35); }
-    .convert-btn:hover { opacity: .9; }
-    .convert-btn:active { transform: scale(.98); }
+    .mapping-table input, .mapping-table select {
+      padding: 4px 6px; border: 1px solid #b0c8de; border-radius: 4px;
+      font-size: .82rem; width: 100%;
+    }
+
+    /* Button */
+    .convert-btn {
+      display: flex; align-items: center; gap: 10px;
+      background: linear-gradient(135deg, #1F4E79, #2E75B6);
+      color: #fff; border: none; border-radius: 8px;
+      padding: 12px 32px; font-size: 1.05rem; font-weight: 700;
+      cursor: pointer; margin-top: 20px;
+      transition: opacity .2s, transform .1s;
+      box-shadow: 0 2px 8px rgba(31,78,121,.35);
+    }
+    .convert-btn:hover   { opacity: .9; }
+    .convert-btn:active  { transform: scale(.98); }
     .convert-btn:disabled { opacity: .5; cursor: default; }
     .convert-btn .spinner { display: none; }
     .convert-btn.loading .spinner { display: inline; animation: spin 1s linear infinite; }
     .convert-btn.loading .btn-text { opacity: .7; }
     @keyframes spin { to { transform: rotate(360deg); } }
-    .alert { padding: 12px 16px; border-radius: 6px; margin-top: 16px; font-size: .9rem; display: none; }
-    .alert.show { display: flex; align-items: flex-start; gap: 10px; }
+
+    /* Alert */
+    .alert {
+      padding: 12px 16px; border-radius: 6px; margin-top: 16px;
+      font-size: .9rem; display: none;
+    }
+    .alert.show  { display: flex; align-items: flex-start; gap: 10px; }
     .alert.error { background: #fde8e8; border-right: 4px solid #c0392b; color: #7a1a1a; }
     .alert.success { background: #e8fde8; border-right: 4px solid #27ae60; color: #1a5c1a; }
+
+    /* Optional PDF row */
     .optional-label { font-size: .82rem; color: #6b8caa; font-style: italic; margin-bottom: 4px; }
-    footer { text-align: center; padding: 24px; font-size: .8rem; color: #8090a0; margin-top: 32px; }
+
+    footer {
+      text-align: center; padding: 24px; font-size: .8rem; color: #8090a0; margin-top: 32px;
+    }
   </style>
 </head>
 <body>
+
 <header>
   <div class="logo">📊</div>
   <div>
@@ -64,13 +162,17 @@
     <p>המרת קבצי דיווח נוכחות מיכפל (QDIV) לאקסל ובחזרה</p>
   </div>
 </header>
+
 <main>
   <div class="tabs">
     <button class="tab-btn active" onclick="switchTab('m2e')">מיכפל ← אקסל</button>
     <button class="tab-btn"        onclick="switchTab('e2m')">אקסל ← מיכפל</button>
   </div>
+
+  <!-- ── MICHPAL → EXCEL ── -->
   <div id="tab-m2e" class="tab-panel active">
     <h2>המרת קובץ מיכפל (QDIV) לאקסל</h2>
+
     <div class="upload-zone" id="zone-michpal">
       <input type="file" id="michpal-file" accept=".010,.qdiv,.txt,*" onchange="onMichpalFile(this)">
       <div class="icon">📁</div>
@@ -78,25 +180,32 @@
       <div class="hint">סיומות: .010 / QDIV*</div>
       <div class="filename" id="michpal-filename"></div>
     </div>
+
     <div class="info-box" id="michpal-info">
       <strong>פרטי הקובץ:</strong>
       <span id="michpal-info-text"></span>
     </div>
-    <p class="optional-label">📄 אפשרות: העלה PDF עם שמות רכיבי שכר (לתיוג עמודות)</p>
+
+    <p class="optional-label">📋 אפשרות: העלה קובץ מיפוי רכיבי שכר — Excel או PDF (לתיוג עמודות)</p>
     <div class="upload-zone" id="zone-pdf" style="padding:16px;">
-      <input type="file" id="pdf-file" accept=".pdf" onchange="onPdfFile(this)">
+      <input type="file" id="pdf-file" accept=".pdf,.xlsx,.xls" onchange="onPdfFile(this)">
       <div class="icon" style="font-size:1.4rem;">📋</div>
-      <div class="label" style="font-size:.9rem;">העלה PDF עם רכיבי שכר (אופציונלי)</div>
+      <div class="label" style="font-size:.9rem;">Excel או PDF עם שמות רכיבים (אופציונלי)</div>
       <div class="filename" id="pdf-filename"></div>
     </div>
+
     <button class="convert-btn" id="btn-m2e" onclick="convertM2E()">
       <span class="spinner">⟳</span>
       <span class="btn-text">📥 צור קובץ אקסל</span>
     </button>
+
     <div class="alert" id="alert-m2e"></div>
   </div>
+
+  <!-- ── EXCEL → MICHPAL ── -->
   <div id="tab-e2m" class="tab-panel">
     <h2>המרת אקסל לקובץ מיכפל (QDIV)</h2>
+
     <div class="upload-zone" id="zone-excel">
       <input type="file" id="excel-file" accept=".xlsx,.xls" onchange="onExcelFile(this)">
       <div class="icon">📊</div>
@@ -104,6 +213,7 @@
       <div class="hint">קבצי .xlsx / .xls</div>
       <div class="filename" id="excel-filename"></div>
     </div>
+
     <div class="field-row">
       <div class="field-group">
         <label>מספר חברה</label>
@@ -122,26 +232,43 @@
         </select>
       </div>
     </div>
+
     <details class="mapping-section" id="mapping-section" style="display:none;">
       <summary>⚙️ עריכת מיפוי עמודות לרכיבי מיכפל</summary>
       <table class="mapping-table">
-        <thead><tr><th>עמודת אקסל</th><th>סמל דיווח</th><th>סוג</th><th>כלול</th></tr></thead>
+        <thead>
+          <tr>
+            <th>עמודת אקסל</th>
+            <th>סמל דיווח</th>
+            <th>סוג</th>
+            <th>כלול</th>
+          </tr>
+        </thead>
         <tbody id="mapping-tbody"></tbody>
       </table>
     </details>
+
     <button class="convert-btn" id="btn-e2m" onclick="convertE2M()">
       <span class="spinner">⟳</span>
       <span class="btn-text">📤 צור קובץ מיכפל</span>
     </button>
+
     <div class="alert" id="alert-e2m"></div>
   </div>
 </main>
+
 <footer>ממיר מיכפל–אקסל | בנוי ב-Python / Flask / openpyxl</footer>
+
 <script>
+// ── Tab switching ──────────────────────────────────────────────────────────
 function switchTab(id) {
-  document.querySelectorAll('.tab-btn').forEach((b,i) => b.classList.toggle('active', ['m2e','e2m'][i]===id));
-  document.querySelectorAll('.tab-panel').forEach(p => p.classList.toggle('active', p.id==='tab-'+id));
+  document.querySelectorAll('.tab-btn').forEach((b, i) =>
+    b.classList.toggle('active', ['m2e','e2m'][i] === id));
+  document.querySelectorAll('.tab-panel').forEach(p =>
+    p.classList.toggle('active', p.id === 'tab-' + id));
 }
+
+// ── Drag-and-drop ──────────────────────────────────────────────────────────
 document.querySelectorAll('.upload-zone').forEach(zone => {
   zone.addEventListener('dragover', e => { e.preventDefault(); zone.classList.add('dragover'); });
   zone.addEventListener('dragleave', () => zone.classList.remove('dragover'));
@@ -149,123 +276,209 @@ document.querySelectorAll('.upload-zone').forEach(zone => {
     e.preventDefault(); zone.classList.remove('dragover');
     const input = zone.querySelector('input[type=file]');
     if (input && e.dataTransfer.files.length) {
-      const dt = new DataTransfer(); dt.items.add(e.dataTransfer.files[0]); input.files = dt.files;
+      const dt = new DataTransfer();
+      dt.items.add(e.dataTransfer.files[0]);
+      input.files = dt.files;
       input.dispatchEvent(new Event('change'));
     }
   });
 });
+
+// ── File handlers ──────────────────────────────────────────────────────────
 function onMichpalFile(input) {
   const fname = input.files[0]?.name || '';
   document.getElementById('michpal-filename').textContent = fname ? '✅ ' + fname : '';
-  hideAlert('m2e'); if (fname) inspectMichpal(input.files[0]);
+  hideAlert('m2e');
+  if (fname) inspectMichpal(input.files[0]);
 }
+
 function onPdfFile(input) {
-  document.getElementById('pdf-filename').textContent = (input.files[0]?.name || '') ? '✅ ' + input.files[0].name : '';
+  const fname = input.files[0]?.name || '';
+  document.getElementById('pdf-filename').textContent = fname ? '✅ ' + fname : '';
 }
+
 function onExcelFile(input) {
   const fname = input.files[0]?.name || '';
   document.getElementById('excel-filename').textContent = fname ? '✅ ' + fname : '';
-  hideAlert('e2m'); if (fname) inspectExcel(input.files[0]);
+  hideAlert('e2m');
+  if (fname) inspectExcel(input.files[0]);
 }
+
+// ── Inspect Michpal ────────────────────────────────────────────────────────
 async function inspectMichpal(file) {
-  const fd = new FormData(); fd.append('michpal_file', file);
+  const fd = new FormData();
+  fd.append('michpal_file', file);
   try {
     const res = await fetch('/api/inspect-michpal', { method: 'POST', body: fd });
-    const data = await res.json(); if (data.error) return;
+    const data = await res.json();
+    if (data.error) return;
     const months = ['','ינואר','פברואר','מרץ','אפריל','מאי','יוני','יולי','אוגוסט','ספטמבר','אוקטובר','נובמבר','דצמבר'];
     const codesText = data.codes.map(c => `${c.code} (${c.name})`).join(' | ');
     document.getElementById('michpal-info-text').innerHTML =
-      `חברה: <strong>${data.company}</strong> | תקופה: <strong>${months[data.month]} ${data.year}</strong> | עובדים: <strong>${data.unique_employees}</strong> | רשומות: <strong>${data.total_records}</strong><br><small>סמלי דיווח: ${codesText}</small>`;
+      `חברה: <strong>${data.company}</strong> |
+       תקופה: <strong>${months[data.month]} ${data.year}</strong> |
+       עובדים: <strong>${data.unique_employees}</strong> |
+       רשומות: <strong>${data.total_records}</strong><br>
+       <small>סמלי דיווח: ${codesText}</small>`;
     document.getElementById('michpal-info').classList.add('show');
   } catch(e) {}
 }
+
+// ── Inspect Excel ──────────────────────────────────────────────────────────
 let excelColumns = [];
+
 async function inspectExcel(file) {
-  const fd = new FormData(); fd.append('excel_file', file);
+  const fd = new FormData();
+  fd.append('excel_file', file);
   try {
     const res = await fetch('/api/inspect-excel', { method: 'POST', body: fd });
-    const data = await res.json(); if (data.error) return;
-    excelColumns = data.columns || []; buildMappingTable(excelColumns);
+    const data = await res.json();
+    if (data.error) return;
+    excelColumns = data.columns || [];
+    buildMappingTable(excelColumns);
     document.getElementById('mapping-section').style.display = '';
     document.getElementById('mapping-section').open = false;
   } catch(e) {}
 }
+
 function buildMappingTable(cols) {
-  const tbody = document.getElementById('mapping-tbody'); tbody.innerHTML = '';
+  const tbody = document.getElementById('mapping-tbody');
+  tbody.innerHTML = '';
   cols.forEach((col, i) => {
     const tr = document.createElement('tr');
-    tr.innerHTML = `<td>${col.header}</td><td><input type="text" id="mc-code-${i}" value="${col.report_code}" maxlength="3" style="width:70px;"></td><td><select id="mc-field-${i}"><option value="qty" ${col.field==='qty'?'selected':''}>כמות</option><option value="price" ${col.field==='price'?'selected':''}>מחיר</option></select></td><td style="text-align:center;"><input type="checkbox" id="mc-inc-${i}" ${col.report_code?'checked':''}></td>`;
+    tr.innerHTML = `
+      <td>${col.header}</td>
+      <td><input type="text" id="mc-code-${i}" value="${col.report_code}" maxlength="3" style="width:70px;"></td>
+      <td>
+        <select id="mc-field-${i}">
+          <option value="qty"   ${col.field==='qty'  ?'selected':''}>כמות</option>
+          <option value="price" ${col.field==='price'?'selected':''}>מחיר</option>
+        </select>
+      </td>
+      <td style="text-align:center;"><input type="checkbox" id="mc-inc-${i}" ${col.report_code?'checked':''}></td>
+    `;
     tbody.appendChild(tr);
   });
 }
+
 function getCustomMapping() {
   const mapping = {};
   excelColumns.forEach((col, i) => {
-    if (!document.getElementById(`mc-inc-${i}`)?.checked) return;
-    const code = document.getElementById(`mc-code-${i}`)?.value.trim();
+    const inc = document.getElementById(`mc-inc-${i}`)?.checked;
+    if (!inc) return;
+    const code  = document.getElementById(`mc-code-${i}`)?.value.trim();
     const field = document.getElementById(`mc-field-${i}`)?.value;
     if (code) mapping[col.header] = { report_code: code, field };
   });
   return mapping;
 }
+
+// ── Convert: Michpal → Excel ───────────────────────────────────────────────
 async function convertM2E() {
   const michpalInput = document.getElementById('michpal-file');
-  if (!michpalInput.files.length) { showAlert('m2e','error','נא לבחור קובץ מיכפל'); return; }
+  if (!michpalInput.files.length) {
+    showAlert('m2e', 'error', 'נא לבחור קובץ מיכפל');
+    return;
+  }
   const btn = document.getElementById('btn-m2e');
-  btn.disabled = true; btn.classList.add('loading'); hideAlert('m2e');
-  const fd = new FormData(); fd.append('michpal_file', michpalInput.files[0]);
+  btn.disabled = true; btn.classList.add('loading');
+  hideAlert('m2e');
+
+  const fd = new FormData();
+  fd.append('michpal_file', michpalInput.files[0]);
   const pdfInput = document.getElementById('pdf-file');
   if (pdfInput.files.length) fd.append('pdf_file', pdfInput.files[0]);
+
   try {
     const res = await fetch('/api/michpal-to-excel', { method: 'POST', body: fd });
-    if (!res.ok) { const err = await res.json().catch(()=>({error:'שגיאה'})); showAlert('m2e','error',err.error); return; }
-    const blob = await res.blob(); const url = URL.createObjectURL(blob); const a = document.createElement('a');
-    a.href = url; a.download = getFilename(res) || 'michpal_export.xlsx';
-    document.body.appendChild(a); a.click(); URL.revokeObjectURL(url); a.remove();
-    showAlert('m2e','success','✅ הקובץ הורד בהצלחה!');
-  } catch(e) { showAlert('m2e','error','שגיאת רשת: '+e.message); }
-  finally { btn.disabled = false; btn.classList.remove('loading'); }
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({ error: 'שגיאה לא ידועה' }));
+      showAlert('m2e', 'error', err.error || 'שגיאה בהמרה');
+      return;
+    }
+    const blob = await res.blob();
+    const url  = URL.createObjectURL(blob);
+    const a    = document.createElement('a');
+    a.href = url;
+    a.download = getFilename(res) || 'michpal_export.xlsx';
+    document.body.appendChild(a); a.click();
+    URL.revokeObjectURL(url); a.remove();
+    showAlert('m2e', 'success', '✅ הקובץ הורד בהצלחה!');
+  } catch(e) {
+    showAlert('m2e', 'error', 'שגיאת רשת: ' + e.message);
+  } finally {
+    btn.disabled = false; btn.classList.remove('loading');
+  }
 }
+
+// ── Convert: Excel → Michpal ───────────────────────────────────────────────
 async function convertE2M() {
   const excelInput = document.getElementById('excel-file');
-  if (!excelInput.files.length) { showAlert('e2m','error','נא לבחור קובץ אקסל'); return; }
+  if (!excelInput.files.length) {
+    showAlert('e2m', 'error', 'נא לבחור קובץ אקסל');
+    return;
+  }
   const btn = document.getElementById('btn-e2m');
-  btn.disabled = true; btn.classList.add('loading'); hideAlert('e2m');
+  btn.disabled = true; btn.classList.add('loading');
+  hideAlert('e2m');
+
   const fd = new FormData();
   fd.append('excel_file', excelInput.files[0]);
-  fd.append('company', document.getElementById('company').value.trim() || '001');
-  fd.append('year', document.getElementById('year').value || new Date().getFullYear());
-  fd.append('month', document.getElementById('month').value);
+  fd.append('company',    document.getElementById('company').value.trim() || '001');
+  fd.append('year',       document.getElementById('year').value   || new Date().getFullYear());
+  fd.append('month',      document.getElementById('month').value);
+
   const customMapping = getCustomMapping();
-  if (Object.keys(customMapping).length) fd.append('col_mapping', JSON.stringify(customMapping));
+  if (Object.keys(customMapping).length)
+    fd.append('col_mapping', JSON.stringify(customMapping));
+
   try {
     const res = await fetch('/api/excel-to-michpal', { method: 'POST', body: fd });
-    if (!res.ok) { const err = await res.json().catch(()=>({error:'שגיאה'})); showAlert('e2m','error',err.error); return; }
-    const blob = await res.blob(); const url = URL.createObjectURL(blob); const a = document.createElement('a');
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({ error: 'שגיאה לא ידועה' }));
+      showAlert('e2m', 'error', err.error || 'שגיאה בהמרה');
+      return;
+    }
+    const blob = await res.blob();
+    const url  = URL.createObjectURL(blob);
+    const a    = document.createElement('a');
     a.href = url;
     const company = document.getElementById('company').value.padStart(3,'0');
     const yy = String(document.getElementById('year').value || new Date().getFullYear()).slice(-2);
     const mm = String(document.getElementById('month').value).padStart(2,'0');
     a.download = getFilename(res) || `QDIV${mm}${yy}.${company}`;
-    document.body.appendChild(a); a.click(); URL.revokeObjectURL(url); a.remove();
-    showAlert('e2m','success','✅ קובץ מיכפל נוצר בהצלחה!');
-  } catch(e) { showAlert('e2m','error','שגיאת רשת: '+e.message); }
-  finally { btn.disabled = false; btn.classList.remove('loading'); }
+    document.body.appendChild(a); a.click();
+    URL.revokeObjectURL(url); a.remove();
+    showAlert('e2m', 'success', '✅ קובץ מיכפל נוצר בהצלחה!');
+  } catch(e) {
+    showAlert('e2m', 'error', 'שגיאת רשת: ' + e.message);
+  } finally {
+    btn.disabled = false; btn.classList.remove('loading');
+  }
 }
+
+// ── Helpers ────────────────────────────────────────────────────────────────
 function showAlert(tab, type, msg) {
-  const el = document.getElementById('alert-'+tab);
-  el.className = 'alert show '+type; el.innerHTML = (type==='error'?'⚠️ ':'')+msg;
+  const el = document.getElementById('alert-' + tab);
+  el.className = 'alert show ' + type;
+  el.innerHTML = (type === 'error' ? '⚠️ ' : '') + msg;
 }
-function hideAlert(tab) { document.getElementById('alert-'+tab).className = 'alert'; }
+function hideAlert(tab) {
+  const el = document.getElementById('alert-' + tab);
+  el.className = 'alert';
+}
+
 function getFilename(res) {
   const cd = res.headers.get('Content-Disposition') || '';
   const m = cd.match(/filename[^;=\n]*=([^;\n"]+)/);
   return m ? m[1].trim().replace(/"/g,'') : null;
 }
+
+// Set current month/year as defaults
 (function() {
   const now = new Date();
-  document.getElementById('year').value = now.getFullYear();
-  document.getElementById('month').value = now.getMonth()+1;
+  document.getElementById('year').value  = now.getFullYear();
+  document.getElementById('month').value = now.getMonth() + 1;
 })();
 </script>
 </body>
