@@ -214,6 +214,14 @@
       <div class="filename" id="excel-filename"></div>
     </div>
 
+    <p class="optional-label">📋 אפשרות: העלה קובץ מיפוי רכיבי שכר — Excel או PDF (לעזרה בזיהוי קודים)</p>
+    <div class="upload-zone" id="zone-mapping-e2m" style="padding:16px;">
+      <input type="file" id="mapping-file-e2m" accept=".pdf,.xlsx,.xls" onchange="onMappingFileE2M(this)">
+      <div class="icon" style="font-size:1.4rem;">📋</div>
+      <div class="label" style="font-size:.9rem;">Excel או PDF עם שמות רכיבים (אופציונלי)</div>
+      <div class="filename" id="mapping-e2m-filename"></div>
+    </div>
+
     <div class="field-row">
       <div class="field-group">
         <label>מספר חברה</label>
@@ -240,6 +248,7 @@
           <tr>
             <th>עמודת אקסל</th>
             <th>סמל דיווח</th>
+            <th>שם רכיב</th>
             <th>סוג</th>
             <th>כלול</th>
           </tr>
@@ -260,6 +269,9 @@
 <footer>ממיר מיכפל–אקסל | בנוי ב-Python / Flask / openpyxl</footer>
 
 <script>
+// ── Component map (loaded from mapping file in e2m tab) ───────────────────
+let componentMap = {};  // { '001': 'שכר 100%', '007': 'ש.נוס 125%', ... }
+
 // ── Tab switching ──────────────────────────────────────────────────────────
 function switchTab(id) {
   document.querySelectorAll('.tab-btn').forEach((b, i) =>
@@ -295,6 +307,37 @@ function onMichpalFile(input) {
 function onPdfFile(input) {
   const fname = input.files[0]?.name || '';
   document.getElementById('pdf-filename').textContent = fname ? '✅ ' + fname : '';
+}
+
+async function onMappingFileE2M(input) {
+  const fname = input.files[0]?.name || '';
+  document.getElementById('mapping-e2m-filename').textContent = fname ? '✅ ' + fname : '';
+  if (!fname) { componentMap = {}; rebuildNamesColumn(); return; }
+
+  const fd = new FormData();
+  fd.append('mapping_file', input.files[0]);
+  try {
+    const res = await fetch('/api/load-component-mapping', { method: 'POST', body: fd });
+    const data = await res.json();
+    if (data.mapping) {
+      componentMap = data.mapping;
+      rebuildNamesColumn();
+    }
+  } catch(e) {}
+}
+
+function rebuildNamesColumn() {
+  excelColumns.forEach((_, i) => {
+    const codeEl = document.getElementById('mc-code-' + i);
+    const nameEl = document.getElementById('mc-name-' + i);
+    if (codeEl && nameEl) nameEl.textContent = resolveCompName(codeEl.value);
+  });
+}
+
+function resolveCompName(code) {
+  if (!code) return '';
+  const padded = code.padStart(3, '0');
+  return componentMap[padded] || componentMap[code] || '';
 }
 
 function onExcelFile(input) {
@@ -345,10 +388,13 @@ function buildMappingTable(cols) {
   const tbody = document.getElementById('mapping-tbody');
   tbody.innerHTML = '';
   cols.forEach((col, i) => {
+    const compName = resolveCompName(col.report_code);
     const tr = document.createElement('tr');
     tr.innerHTML = `
       <td>${col.header}</td>
-      <td><input type="text" id="mc-code-${i}" value="${col.report_code}" maxlength="3" style="width:70px;"></td>
+      <td><input type="text" id="mc-code-${i}" value="${col.report_code}" maxlength="3"
+           style="width:60px;" oninput="updateCompName(${i},this.value)"></td>
+      <td id="mc-name-${i}" style="color:#1a6a1a;font-size:.82rem;min-width:120px;">${compName}</td>
       <td>
         <select id="mc-field-${i}">
           <option value="qty"   ${col.field==='qty'  ?'selected':''}>כמות</option>
@@ -359,6 +405,11 @@ function buildMappingTable(cols) {
     `;
     tbody.appendChild(tr);
   });
+}
+
+function updateCompName(i, code) {
+  const el = document.getElementById('mc-name-' + i);
+  if (el) el.textContent = resolveCompName(code);
 }
 
 function getCustomMapping() {
