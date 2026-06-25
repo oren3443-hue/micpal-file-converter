@@ -49,6 +49,16 @@ def _data_cell(ws, row, col, value, is_alt=False, number_format=None, bold=False
     return cell
 
 
+def _component_code(report_code: str) -> str:
+    """Convert raw QDIV report code to display component number.
+    Salary components 100-252 are stored as 400-552 in the file (add 300).
+    """
+    code = int(report_code)
+    if 400 <= code <= 552:
+        return str(code - 300).zfill(3)
+    return report_code
+
+
 def write_excel_from_michpal(
     records: List[MichpalRecord],
     output_path: str,
@@ -66,25 +76,26 @@ def write_excel_from_michpal(
     # Group by employee
     employees: Dict[str, Dict] = defaultdict(lambda: {
         'id_num': '',
-        'codes': {},  # report_code -> {'qty': float, 'price': float}
+        'codes': {},  # component_code -> {'qty': float, 'price': float}
         'company': '',
         'yymm': '',
     })
 
-    all_codes = sorted(set(r.report_code for r in records))
+    all_codes = sorted(set(_component_code(r.report_code) for r in records))
 
     for rec in records:
         if rec.record_code == '9':
             continue
         emp = rec.employee_num
+        comp_code = _component_code(rec.report_code)
         employees[emp]['id_num'] = rec.id_num
         employees[emp]['company'] = rec.company
         employees[emp]['yymm'] = rec.yymm
-        if rec.report_code not in employees[emp]['codes']:
-            employees[emp]['codes'][rec.report_code] = {'qty': 0.0, 'price': 0.0}
-        employees[emp]['codes'][rec.report_code]['qty'] += rec.quantity
+        if comp_code not in employees[emp]['codes']:
+            employees[emp]['codes'][comp_code] = {'qty': 0.0, 'price': 0.0}
+        employees[emp]['codes'][comp_code]['qty'] += rec.quantity
         if rec.price != 0:
-            employees[emp]['codes'][rec.report_code]['price'] = rec.price
+            employees[emp]['codes'][comp_code]['price'] = rec.price
 
     # Determine which codes have non-zero prices
     codes_with_price: set = set()
