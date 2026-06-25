@@ -210,7 +210,8 @@ def inspect_michpal():
         meta = get_michpal_meta(records)
 
         from converters.michpal_parser import BUILTIN_CODE_NAMES
-        codes = sorted(set(r.report_code for r in records))
+        from converters.excel_writer import _component_code
+        codes = sorted(set(_component_code(r.report_code) for r in records))
         code_info = [{'code': c, 'name': BUILTIN_CODE_NAMES.get(c, f'רכיב {c}')} for c in codes]
 
         return jsonify({**meta, 'codes': code_info})
