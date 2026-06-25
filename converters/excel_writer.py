@@ -51,11 +51,12 @@ def _data_cell(ws, row, col, value, is_alt=False, number_format=None, bold=False
 
 def _component_code(report_code: str) -> str:
     """Human-readable component number for a raw QDIV report code.
-    Salary components 1-252 are stored as 301-552 in the file (+300).
+    Salary components 1-90 → QDIV codes 001-090 (no offset).
+    Salary components 100-252 → QDIV codes 400-552 (+300 offset).
     Attendance/built-in codes (100-131, 900s) are stored as-is.
     """
     code = int(report_code)
-    if 300 < code <= 552:
+    if 400 <= code <= 552:
         return str(code - 300).zfill(3)
     return report_code
 
@@ -77,11 +78,14 @@ def _name_for_code(report_code: str, component_names: Dict) -> str:
     if report_code in BUILTIN_CODE_NAMES:
         return BUILTIN_CODE_NAMES[report_code]
     code = int(report_code)
-    # Salary component: subtract offset to get component number
-    if 300 < code <= 552:
+    # Salary components 100-252: stored as QDIV 400-552 (+300 offset)
+    if 400 <= code <= 552:
         comp_key = str(code - 300).zfill(3)
         return component_names.get(comp_key, f'רכיב {comp_key}')
-    # Other codes: try direct lookup, then fallback
+    # Salary components 1-90 and 95-99: QDIV code = component number (no offset)
+    if (1 <= code <= 90) or (95 <= code <= 99):
+        return component_names.get(report_code, f'רכיב {report_code}')
+    # Other codes (deductions 301-332, tariff 201-299, etc.)
     return component_names.get(report_code, f'קוד {report_code}')
 
 

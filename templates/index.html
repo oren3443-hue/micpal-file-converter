@@ -338,13 +338,16 @@ function resolveCompName(code) {
   if (!code) return '';
   const codeNum = parseInt(code, 10);
   if (isNaN(codeNum)) return '';
-  // QDIV salary component codes are stored as component_number + 300 (range 301-552)
-  if (codeNum > 300 && codeNum <= 552) {
-    const compNum = String(codeNum - 300).padStart(3, '0');
-    return componentMap[compNum] || '';
+  // Components 100-252: stored in QDIV as code+300 (range 400-552)
+  if (codeNum >= 400 && codeNum <= 552) {
+    return componentMap[String(codeNum - 300).padStart(3, '0')] || '';
   }
-  // Direct component number entry (1-252) — look up as-is
-  return componentMap[String(codeNum).padStart(3, '0')] || '';
+  // Components 1-90 and 95-99: stored in QDIV with the same code (no offset)
+  if ((codeNum >= 1 && codeNum <= 90) || (codeNum >= 95 && codeNum <= 99)) {
+    return componentMap[String(codeNum).padStart(3, '0')] || '';
+  }
+  // Built-in attendance (100-131, 901+), tariff (201-299), deductions (301-332) — no name
+  return '';
 }
 
 function onExcelFile(input) {
