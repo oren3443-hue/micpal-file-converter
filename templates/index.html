@@ -241,6 +241,18 @@
       </div>
     </div>
 
+    <div id="employee-col-section" style="display:none; margin:16px 0; padding:14px 16px; background:#fff8e1; border:2px solid #e0a800; border-radius:8px;">
+      <label style="display:block; font-weight:700; margin-bottom:8px; color:#7a5500; font-size:.95rem;">
+        ⚠️ עמודת מספר עובד במע' השכר <span style="color:#c00;">*</span>
+      </label>
+      <select id="employee-col-select" style="width:100%; padding:8px 10px; font-size:.95rem; border:1.5px solid #c8a000; border-radius:6px; background:#fffdf0;">
+        <option value="">-- בחר עמודה --</option>
+      </select>
+      <p style="margin-top:8px; font-size:.8rem; color:#7a5500;">
+        בחירה שגויה של עמודה זו עלולה לגרום לנזק בלתי הפיך לנתוני השכר. ודא שאתה בוחר את העמודה הנכונה.
+      </p>
+    </div>
+
     <details class="mapping-section" id="mapping-section" style="display:none;">
       <summary>⚙️ עריכת מיפוי עמודות לרכיבי מיכפל</summary>
       <table class="mapping-table">
@@ -389,9 +401,24 @@ async function inspectExcel(file) {
     if (data.error) return;
     excelColumns = data.columns || [];
     buildMappingTable(excelColumns);
+    buildEmployeeColSelect(data.all_headers || [], data.detected_employee_col || null);
     document.getElementById('mapping-section').style.display = '';
     document.getElementById('mapping-section').open = false;
   } catch(e) {}
+}
+
+function buildEmployeeColSelect(allHeaders, detectedHeader) {
+  const sel = document.getElementById('employee-col-select');
+  sel.innerHTML = '<option value="">-- בחר עמודה --</option>';
+  allHeaders.forEach(h => {
+    if (!h) return;
+    const opt = document.createElement('option');
+    opt.value = h;
+    opt.textContent = (detectedHeader && h === detectedHeader) ? h + '  ✓ (זוהה אוטומטית)' : h;
+    if (detectedHeader && h === detectedHeader) opt.selected = true;
+    sel.appendChild(opt);
+  });
+  document.getElementById('employee-col-section').style.display = '';
 }
 
 function buildMappingTable(cols) {
@@ -483,11 +510,19 @@ async function convertE2M() {
   btn.disabled = true; btn.classList.add('loading');
   hideAlert('e2m');
 
+  const empColHeader = document.getElementById('employee-col-select')?.value;
+  if (!empColHeader) {
+    showAlert('e2m', 'error', 'יש לבחור את עמודת מספר העובד לפני ביצוע ההמרה');
+    btn.disabled = false; btn.classList.remove('loading');
+    return;
+  }
+
   const fd = new FormData();
   fd.append('excel_file', excelInput.files[0]);
   fd.append('company',    document.getElementById('company').value.trim() || '001');
   fd.append('year',       document.getElementById('year').value   || new Date().getFullYear());
   fd.append('month',      document.getElementById('month').value);
+  fd.append('employee_col_header', empColHeader);
 
   const customMapping = getCustomMapping();
   if (Object.keys(customMapping).length)

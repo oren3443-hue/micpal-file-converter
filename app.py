@@ -12,7 +12,7 @@ from flask import (
 
 from converters.michpal_parser import parse_michpal_file, get_michpal_meta
 from converters.michpal_writer import write_michpal_file
-from converters.excel_parser import parse_excel_file, DEFAULT_COLUMN_MAPPING
+from converters.excel_parser import parse_excel_file, DEFAULT_COLUMN_MAPPING, EMPLOYEE_NUM_ALIASES
 from converters.excel_writer import write_excel_from_michpal
 from converters.pdf_parser import extract_component_names, extract_component_names_from_excel
 
@@ -132,7 +132,8 @@ def excel_to_michpal():
             except Exception:
                 pass
 
-        parsed = parse_excel_file(epath, custom_mapping)
+        employee_col_header = request.form.get('employee_col_header', '').strip() or None
+        parsed = parse_excel_file(epath, custom_mapping, employee_col_header=employee_col_header)
         employees = parsed['employees']
         if not employees:
             return jsonify(error='לא נמצאו עובדים עם נתוני שכר'), 400
@@ -199,11 +200,16 @@ def inspect_excel():
 
         wb.close()
 
-        # Suggest mappings
+        # Suggest mappings (for the column-mapping table)
+        _emp_aliases = EMPLOYEE_NUM_ALIASES | {'מספר עובד', 'employee_num', 'employee_id'}
+        detected_employee_col = None
         suggestions = []
         for h in headers:
             if not h:
                 continue
+            if detected_employee_col is None and h in _emp_aliases:
+                detected_employee_col = h
+                continue  # employee-num column is not a salary component
             mapped = DEFAULT_COLUMN_MAPPING.get(h)
             suggestions.append({
                 'header': h,
@@ -211,7 +217,11 @@ def inspect_excel():
                 'field': mapped[1] if mapped else 'qty',
             })
 
-        return jsonify(columns=suggestions)
+        return jsonify(
+            columns=suggestions,
+            all_headers=[h for h in headers if h],
+            detected_employee_col=detected_employee_col,
+        )
 
     except Exception as exc:
         return jsonify(error=str(exc)), 500

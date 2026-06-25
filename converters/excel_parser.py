@@ -54,7 +54,8 @@ def _find_header_row(ws) -> Optional[int]:
     return 1
 
 
-def parse_excel_file(filepath: str, column_mapping: Optional[Dict] = None) -> Dict:
+def parse_excel_file(filepath: str, column_mapping: Optional[Dict] = None,
+                     employee_col_header: Optional[str] = None) -> Dict:
     """
     Parse an Excel attendance report.
 
@@ -86,6 +87,13 @@ def parse_excel_file(filepath: str, column_mapping: Optional[Dict] = None) -> Di
     # Map header positions to Michpal codes
     col_map = {}  # col_index -> (report_code, field)
     employee_col = None
+
+    # If caller explicitly specified which column is the employee number, resolve it first
+    if employee_col_header is not None:
+        for idx, h in enumerate(headers):
+            if h is not None and str(h).strip() == employee_col_header:
+                employee_col = idx
+                break
     id_col = None
     first_name_col = None
     last_name_col = None
@@ -95,10 +103,10 @@ def parse_excel_file(filepath: str, column_mapping: Optional[Dict] = None) -> Di
             continue
         h = str(header).strip()
 
-        if h in EMPLOYEE_NUM_ALIASES:
-            employee_col = col_idx
-        elif h in ('מספר עובד', 'employee_num', 'employee_id'):
-            if employee_col is None:
+        if employee_col is None:
+            if h in EMPLOYEE_NUM_ALIASES:
+                employee_col = col_idx
+            elif h in ('מספר עובד', 'employee_num', 'employee_id'):
                 employee_col = col_idx
         elif h in ('מספר זהות', 'ת.ז.', 'id_num', 'identity'):
             id_col = col_idx
