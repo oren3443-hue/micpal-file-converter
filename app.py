@@ -231,10 +231,9 @@ def inspect_michpal():
         records = parse_michpal_file(mpath)
         meta = get_michpal_meta(records)
 
-        from converters.michpal_parser import BUILTIN_CODE_NAMES
-        from converters.excel_writer import _component_code
-        codes = sorted(set(_component_code(r.report_code) for r in records))
-        code_info = [{'code': c, 'name': BUILTIN_CODE_NAMES.get(c, f'רכיב {c}')} for c in codes]
+        from converters.excel_writer import _component_code, _name_for_code
+        codes = sorted(set(r.report_code for r in records))
+        code_info = [{'code': _component_code(c), 'name': _name_for_code(c, {})} for c in codes]
 
         return jsonify({**meta, 'codes': code_info})
 
