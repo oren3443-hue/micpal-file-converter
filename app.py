@@ -14,7 +14,7 @@ from converters.michpal_parser import parse_michpal_file, get_michpal_meta
 from converters.michpal_writer import write_michpal_file
 from converters.excel_parser import parse_excel_file, DEFAULT_COLUMN_MAPPING
 from converters.excel_writer import write_excel_from_michpal
-from converters.pdf_parser import extract_component_names
+from converters.pdf_parser import extract_component_names, extract_component_names_from_excel
 
 app = Flask(__name__)
 app.config['MAX_CONTENT_LENGTH'] = 50 * 1024 * 1024  # 50 MB
@@ -64,13 +64,19 @@ def michpal_to_excel():
         mpath = _tmp('.010')
         mf.save(mpath)
 
-        # Optional PDF for component names
+        # Optional PDF or Excel for component names
         component_names = {}
-        pdf = request.files.get('pdf_file')
-        if pdf and pdf.filename:
-            ppath = _tmp('.pdf')
-            pdf.save(ppath)
-            component_names = extract_component_names(ppath)
+        mapping_file = request.files.get('pdf_file')
+        if mapping_file and mapping_file.filename:
+            fname = mapping_file.filename.lower()
+            if fname.endswith(('.xlsx', '.xls')):
+                mfile_path = _tmp('.xlsx')
+                mapping_file.save(mfile_path)
+                component_names = extract_component_names_from_excel(mfile_path)
+            else:
+                mfile_path = _tmp('.pdf')
+                mapping_file.save(mfile_path)
+                component_names = extract_component_names(mfile_path)
 
         records = parse_michpal_file(mpath)
         if not records:
