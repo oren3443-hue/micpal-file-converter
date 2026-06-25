@@ -336,8 +336,15 @@ function rebuildNamesColumn() {
 
 function resolveCompName(code) {
   if (!code) return '';
-  const padded = code.padStart(3, '0');
-  return componentMap[padded] || componentMap[code] || '';
+  const codeNum = parseInt(code, 10);
+  if (isNaN(codeNum)) return '';
+  // QDIV salary component codes are stored as component_number + 300 (range 301-552)
+  if (codeNum > 300 && codeNum <= 552) {
+    const compNum = String(codeNum - 300).padStart(3, '0');
+    return componentMap[compNum] || '';
+  }
+  // Direct component number entry (1-252) — look up as-is
+  return componentMap[String(codeNum).padStart(3, '0')] || '';
 }
 
 function onExcelFile(input) {
