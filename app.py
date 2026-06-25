@@ -241,5 +241,26 @@ def inspect_michpal():
         return jsonify(error=str(exc)), 500
 
 
+@app.route('/api/load-component-mapping', methods=['POST'])
+def load_component_mapping():
+    """Return {code: name} dict from an uploaded Excel or PDF mapping file."""
+    try:
+        if 'mapping_file' not in request.files:
+            return jsonify(error='חסר קובץ'), 400
+        f = request.files['mapping_file']
+        fname = f.filename.lower()
+        if fname.endswith(('.xlsx', '.xls')):
+            fpath = _tmp('.xlsx')
+            f.save(fpath)
+            names = extract_component_names_from_excel(fpath)
+        else:
+            fpath = _tmp('.pdf')
+            f.save(fpath)
+            names = extract_component_names(fpath)
+        return jsonify(mapping=names)
+    except Exception as exc:
+        return jsonify(error=str(exc)), 500
+
+
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=5000)
